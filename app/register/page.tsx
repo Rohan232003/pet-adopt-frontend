@@ -244,7 +244,7 @@ export default function RegisterPage() {
                       </select>
                     </div>
                   )}
-                  {formData.role === 'STAFF' && (
+                  {(formData.role === 'STAFF' || formData.role === 'ADMIN') && (
                     <div className="mt-4">
                       <label htmlFor="invitationCode" className="block text-sm font-medium text-gray-700 mb-2">
                         Invitation Code
