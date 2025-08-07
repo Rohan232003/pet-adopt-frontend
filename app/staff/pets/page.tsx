@@ -203,9 +203,9 @@ export default function StaffPetsPage() {
                   <CardTitle className="text-lg font-bold">{pet.name}</CardTitle>
                   <CardDescription>
                     {pet.age} year{pet.age !== 1 ? 's' : ''} old • {pet.gender} • {pet.size}
-                    {lookups && pet.speciesId && ` • ${lookups.speciesMap[pet.speciesId] || `Species #${pet.speciesId}`}`}
-                    {lookups && pet.breedId && ` • ${lookups.breedMap[pet.breedId] || `Breed #${pet.breedId}`}`}
-                    {lookups && pet.shelterId && ` • ${lookups.shelterMap[pet.shelterId] || `Shelter #${pet.shelterId}`}`}
+                    {lookups && pet.species && ` • ${lookups.speciesMap[pet.species.id] || `Species #${pet.species.id}`}`}
+                    {lookups && pet.breed && ` • ${lookups.breedMap[pet.breed.id] || `Breed #${pet.breed.id}`}`}
+                    {lookups && pet.shelter && ` • ${lookups.shelterMap[pet.shelter.id] || `Shelter #${pet.shelter.id}`}`}
                   </CardDescription>
                 </CardHeader>
                 
@@ -274,4 +274,4 @@ export default function StaffPetsPage() {
       </div>
     </ProtectedRoute>
   );
-} 
+}
