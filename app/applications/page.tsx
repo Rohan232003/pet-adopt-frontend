@@ -42,11 +42,15 @@ export default function ApplicationsPage() {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const data = await api.getApplications();
-      const transformedApplications = data.applications.map((app: any) => ({
-        ...app.applications,
-        pet: app.pets,
-      }));
+      const response = await api.getApplications();
+      // The API returns an object with an 'applications' property, which is an array.
+      // Each item in the array is an object with 'applications' and 'pets' properties.
+      const transformedApplications = response.applications.map((item: any) => {
+        return {
+          ...item.applications, // Spread the application properties
+          pet: item.pets,       // Assign the pet object
+        };
+      });
       setApplications(transformedApplications || []);
       setError(null);
     } catch (err) {
