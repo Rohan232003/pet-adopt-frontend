@@ -5,25 +5,53 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { api, Pet } from '@/lib/api';
+import { api, Pet, Species } from '@/lib/api';
 import { Heart, ArrowLeft, Search, Users, Calendar } from 'lucide-react';
 
 export default function AdoptPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
+  const [species, setSpecies] = useState<Species[]>([]);
+  const [selectedSpecies, setSelectedSpecies] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchPets();
+    fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    fetchPets();
+  }, [selectedSpecies]);
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const [petsResponse, speciesResponse] = await Promise.all([
+        api.getPets({ limit: 20, status: 'AVAILABLE' }),
+        api.getSpecies(),
+      ]);
+      setPets(petsResponse.pets);
+      setSpecies(speciesResponse.species);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load initial data. Please try again later.');
+      console.error('Error fetching initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPets = async () => {
     try {
       setLoading(true);
-      const response = await api.getPets({ limit: 20, status: 'AVAILABLE' });
+      const response = await api.getPets({
+        limit: 20,
+        status: 'AVAILABLE',
+        speciesId: selectedSpecies || undefined,
+      });
       setPets(response.pets);
       setError(null);
     } catch (err) {
@@ -94,6 +122,20 @@ export default function AdoptPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm w-full md:w-80"
               />
+            </div>
+            <div className="relative">
+              <select
+                value={selectedSpecies || ''}
+                onChange={(e) => setSelectedSpecies(e.target.value ? Number(e.target.value) : null)}
+                className="pl-3 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm w-full md:w-48"
+              >
+                <option value="">All Species</option>
+                {species.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

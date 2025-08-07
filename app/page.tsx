@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { api, Pet } from '@/lib/api';
+import { api, Pet, Species } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { Heart, MapPin, Calendar, Users, Search, FileText, LogIn, User } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
@@ -13,6 +13,8 @@ export default function Home() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [pets, setPets] = useState<Pet[]>([]);
+  const [species, setSpecies] = useState<Species[]>([]);
+  const [selectedSpecies, setSelectedSpecies] = useState<number | null>(null);
   const [shelters, setShelters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,23 +23,34 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchPets(page);
-    fetchShelters();
-  }, [page]);
+    fetchInitialData();
+  }, [page, selectedSpecies]);
 
-  const fetchShelters = async () => {
+  const fetchInitialData = async () => {
     try {
-      const response = await api.getShelters();
-      setShelters(response.shelters);
+      setLoading(true);
+      const [petsResponse, speciesResponse, sheltersResponse] = await Promise.all([
+        api.getPets({ page, limit: 12, speciesId: selectedSpecies || undefined }),
+        api.getSpecies(),
+        api.getShelters(),
+      ]);
+      setPets(petsResponse.pets);
+      setTotalPages(petsResponse.pagination.totalPages);
+      setSpecies(speciesResponse.species);
+      setShelters(sheltersResponse.shelters);
+      setError(null);
     } catch (err) {
-      console.error('Error fetching shelters:', err);
+      setError('Failed to load data. Please try again later.');
+      console.error('Error fetching initial data:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchPets = async (currentPage: number) => {
     try {
       setLoading(true);
-      const response = await api.getPets({ page: currentPage, limit: 12 });
+      const response = await api.getPets({ page: currentPage, limit: 12, speciesId: selectedSpecies || undefined });
       setPets(response.pets);
       setTotalPages(response.pagination.totalPages);
       setError(null);
@@ -105,6 +118,20 @@ export default function Home() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm w-full md:w-80"
                 />
+              </div>
+              <div className="relative">
+                <select
+                  value={selectedSpecies || ''}
+                  onChange={(e) => setSelectedSpecies(e.target.value ? Number(e.target.value) : null)}
+                  className="pl-3 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm w-full md:w-48"
+                >
+                  <option value="">All Species</option>
+                  {species.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               {user ? (
                 <>

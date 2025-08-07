@@ -91,12 +91,13 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
 export const api = {
   // Pets
-  getPets: (params?: { page?: number; limit?: number; status?: string; search?: string }) => {
+  getPets: (params?: { page?: number; limit?: number; status?: string; search?: string, speciesId?: number }) => {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.status) searchParams.append('status', params.status);
     if (params?.search) searchParams.append('search', params.search);
+    if (params?.speciesId) searchParams.append('speciesId', params.speciesId.toString());
     
     const query = searchParams.toString();
     return fetchApi<PetsResponse>(`/pets${query ? `?${query}` : ''}`, { credentials: 'include' });
